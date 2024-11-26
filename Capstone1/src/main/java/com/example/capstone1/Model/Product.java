@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.util.ArrayList;
+
 @Data
 @AllArgsConstructor
 public class Product {
@@ -21,4 +23,10 @@ public class Product {
 
     @NotEmpty(message = "your categoryID is Empty!")
     private String categoryID;
+
+
+    private ArrayList<Integer> ratings;
+    private double discount;
+    private int stock;
+
 }

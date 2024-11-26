@@ -1,10 +1,8 @@
 package com.example.capstone1.Controller;
 
 import com.example.capstone1.ApiResponse.ApiResponse;
-import com.example.capstone1.Model.Merchant;
 import com.example.capstone1.Model.MerchantStock;
 import com.example.capstone1.Model.Product;
-import com.example.capstone1.Model.User;
 import com.example.capstone1.Service.MerchantStockServise;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -89,90 +87,94 @@ public class MerchantStockCotroller {
         }
     }
 
-    @PutMapping("/updateBalance/{userId}/{amount}")
-    public ResponseEntity updateBalance(@PathVariable String userId, @PathVariable double amount) {
-        boolean isUpdated = serviceM.updateBalance(userId, amount);
-        if (isUpdated) {
-            return ResponseEntity.status(200).body("Balance updated successfully.");
-        }
-        return ResponseEntity.status(400).body(new ApiResponse("User not found."));
-    }
-
-    @DeleteMapping("/deleteLowStockProducts/{threshold}")
-    public ResponseEntity deleteLowStockProducts(@PathVariable int threshold) {
-        int deletedCount = serviceM.deleteLowStockProducts(threshold);
-        if (deletedCount > 0) {
-            return ResponseEntity.status(200).body("Deleted " + deletedCount + " products with low stock.");
+    @PostMapping("/rateProduct/{userId}/{productId}")
+    public ResponseEntity rateProduct(@PathVariable String userId, @PathVariable String productId, @PathVariable int rating) {
+        boolean isRated = serviceM.rateProduct(userId, productId, rating);
+        if (isRated) {
+            return ResponseEntity.status(200).body("Product rated successfully.");
         } else {
-            return ResponseEntity.status(400).body("No products found with stock below " + threshold);
+            return ResponseEntity.status(400).body("Failed to rate product. Check IDs or rating range.");
         }
     }
 
-
-    @PostMapping("/getProductsByCategory/{categoryId}")
-    public ResponseEntity getProductsByCategory(@PathVariable String categoryId) {
-        ArrayList<Product> products = serviceM.getProductsByCategory(categoryId);
-        if (products.isEmpty()) {
-            return ResponseEntity.status(400).body("No products found in this category.");
+    @PostMapping("/sendNotification/{userId}")
+    public ResponseEntity sendNotification(@PathVariable String userId, @PathVariable String message) {
+        boolean isSent = serviceM.sendOrderNotification(userId, message);
+        if (isSent) {
+            return ResponseEntity.status(200).body("Notification sent successfully.");
         } else {
-            return ResponseEntity.status(200).body(products);
+            return ResponseEntity.status(400).body("Failed to send notification. Check user ID.");
         }
+
+
     }
 
-    @PutMapping("/updateProductName/{productId}/{newName}")
-    public ResponseEntity updateProductName(@PathVariable String productId, @PathVariable String newName) {
-        boolean updated = serviceM.updateProductName(productId, newName);
-        if (updated) {
-            return ResponseEntity.status(200).body("Product name updated successfully.");
+
+    @PutMapping("/addDiscount/{merchantId}/{productId}")
+    public ResponseEntity addDiscount(@PathVariable String merchantId, @PathVariable String productId, @PathVariable double discount) {
+        boolean isDiscounted = serviceM.addDiscount(merchantId, productId, discount);
+        if (isDiscounted) {
+            return ResponseEntity.status(200).body("Discount added successfully.");
         } else {
-            return ResponseEntity.status(400).body("Product not found.");
+            return ResponseEntity.status(400).body("Failed to add discount. Check IDs.");
+        } }
+
+
+        @PostMapping("/reorderProduct/{userId}/{productId}")
+        public ResponseEntity reorderProduct(@PathVariable String userId, @PathVariable String productId) {
+            boolean isReordered = serviceM.reorderProduct(userId, productId);
+            if (isReordered) {
+                return ResponseEntity.status(200).body("Product reordered successfully.");
+            } else {
+                return ResponseEntity.status(400).body("Unable to reorder product. Check stock or ID.");
+            }
         }
+
+        @PostMapping("/customOffers/{userId}")
+        public ResponseEntity getCustomOffers(@PathVariable String userId) {
+            ArrayList<Product> offers = serviceM.getCustomOffers(userId);
+            if (!offers.isEmpty()) {
+                return ResponseEntity.status(200).body(offers);
+            } else {
+                return ResponseEntity.status(400).body("No custom offers available for this user.");
+            }
+        }
+
+
+        @PostMapping("/sendGift/{senderId}/{receiverId}/{productId}")
+        public ResponseEntity sendGift(@PathVariable String senderId, @PathVariable String receiverId, @PathVariable String productId) {
+            boolean isSent = serviceM.sendGift(senderId, receiverId, productId);
+            if (isSent) {
+                return ResponseEntity.status(200).body("Gift sent successfully.");
+            } else {
+                return ResponseEntity.status(400).body("Unable to send gift. Check IDs or stock.");
+            }
+        }
+
+        @PostMapping("/returnProduct/{userId}/{productId}")
+        public ResponseEntity returnProduct(@PathVariable String userId, @PathVariable String productId) {
+            boolean isReturned = serviceM.returnProduct(userId, productId);
+            if (isReturned) {
+                return ResponseEntity.status(200).body("Product returned successfully.");
+            } else {
+                return ResponseEntity.status(400).body("Unable to return product. Check IDs or orders.");
+            }
+        }
+
+
+
+
+
     }
 
 
 
-    @GetMapping("/getProductsByMerchant/{merchantId}")
-    public ResponseEntity getProductsByMerchant(@PathVariable String merchantId) {
-        ArrayList<Product> products = serviceM.getProductsByMerchant(merchantId);
-        if (products.isEmpty()) {
-            return ResponseEntity.status(400).body(new ApiResponse("No products found for this merchant."));
-        }
-        return ResponseEntity.status(200).body(products);
-    }
-
-    @GetMapping("/checkStock/{productId}/{merchantId}")
-    public ResponseEntity checkStock(@PathVariable String productId, @PathVariable String merchantId) {
-        int stock = serviceM.checkStock(productId, merchantId);
-        if (stock >= 0) {
-            return ResponseEntity.status(200).body("Stock available: " + stock);
-        }
-        return ResponseEntity.status(400).body(new ApiResponse("Product not available at this merchant."));
-    }
-
-    @GetMapping("/getMerchantsByProduct/{productId}")
-    public ResponseEntity getMerchantsByProduct(@PathVariable String productId) {
-        ArrayList<Merchant> merchants = serviceM.getMerchantsByProduct(productId);
-        if (merchants.isEmpty()) {
-            return ResponseEntity.status(400).body(new ApiResponse("No merchants found for this product."));
-        }
-        return ResponseEntity.status(200).body(merchants);
-    }
-
-    @GetMapping("/getUsersByLowBalance/{balance}")
-    public ResponseEntity getUsersByLowBalance(@PathVariable double balance) {
-        ArrayList<User> users = serviceM.getUsersByLowBalance(balance);
-        if (users.isEmpty()) {
-            return ResponseEntity.status(400).body(new ApiResponse("No users found with balance below " + balance));
-        }
-        return ResponseEntity.status(200).body(users);
-    }
 
 
 
 
 
 
-}
 
 
 

@@ -1,7 +1,6 @@
 package com.example.capstone1.Service;
 
 
-import com.example.capstone1.Model.Merchant;
 import com.example.capstone1.Model.MerchantStock;
 import com.example.capstone1.Model.Product;
 import com.example.capstone1.Model.User;
@@ -15,7 +14,7 @@ public class MerchantStockServise {
     ArrayList<MerchantStock> array = new ArrayList<>();
     ArrayList<User> users = new ArrayList<>();
     ArrayList<Product> products = new ArrayList<>();
-    ArrayList<Merchant> merchants = new ArrayList<>();
+
 
 
     public ArrayList<MerchantStock> get() {
@@ -112,106 +111,103 @@ public class MerchantStockServise {
 
 
 
-    public boolean updateBalance(String userId, double amount) {
+
+
+    public boolean rateProduct(String userId, String productId, int rating) {
         User user = findUserById(userId);
-        if (user != null) {
-            user.setBalance(user.getBalance() + amount);
+        Product product = findProductById(productId);
+
+        if (user != null && product != null && rating >= 1 && rating <= 5) {
+            product.getRatings().add(rating);
             return true;
         }
         return false;
     }
 
 
-    public int deleteLowStockProducts(int threshold) {
-        int count = 0;
-        for (int i = 0; i < array.size(); i++) {
-            if (array.get(i).getStock() < threshold) {
-                array.remove(i);
-                count++;
-                i--; // لتجنب تخطي العناصر بسبب الحذف
-            }
+    public boolean sendOrderNotification(String userId, String message) {
+        User user = findUserById(userId);
+        if (user != null) {
+            user.getNotifications().add(message);
+            return true;
         }
-        return count;
+        return false;
     }
 
-    public ArrayList<Product> getProductsByCategory(String categoryId) {
-        ArrayList<Product> result = new ArrayList<>();
-        for (Product product : products) {
-            if (product.getCategoryID().equals(categoryId)) {
-                result.add(product);
-            }
-        }
-        return result;
-    }
-
-
-    public boolean updateProductName(String productId, String newName) {
-        for (Product product : products) {
-            if (product.getId().equals(productId)) {
-                product.setName(newName);
-                return true;
+    public boolean addDiscount(String merchantId, String productId, double discount) {
+        for (MerchantStock stock : array) {
+            if (stock.getMerchantId().equals(merchantId) && stock.getProductId().equals(productId)) {
+                Product product = findProductById(productId);
+                if (product != null) {
+                    product.setDiscount(discount);
+                    return true;
+                }
             }
         }
         return false;
     }
 
 
-    public ArrayList<Product> getProductsByMerchant(String merchantId) {
-        ArrayList<Product> merchantProducts = new ArrayList<>();
-        for (MerchantStock stock : array) {
-            if (stock.getMerchantId().equals(merchantId)) {
-                Product product = findProductById(stock.getProductId());
-                if (product != null) {
-                    merchantProducts.add(product);
+
+    public boolean reorderProduct(String userId, String productId) {
+        User user = findUserById(userId);
+        Product product = findProductById(productId);
+
+        if (user != null && product != null && product.getStock() > 0) {
+            user.getOrders().add(productId);
+            product.setStock(product.getStock() - 1);
+            return true;
+        }
+        return false;
+    }
+
+
+    public ArrayList<Product> getCustomOffers(String userId) {
+        User user = findUserById(userId);
+        ArrayList<Product> offers = new ArrayList<>();
+
+        if (user != null) {
+            for (String productId : user.getViewedProducts()) {
+                Product product = findProductById(productId);
+                if (product != null && product.getDiscount() > 0) {
+                    offers.add(product);
                 }
             }
         }
-        return merchantProducts;
+        return offers;
     }
 
 
-    public int checkStock(String productId, String merchantId) {
-        for (MerchantStock stock : array) {
-            if (stock.getProductId().equals(productId) && stock.getMerchantId().equals(merchantId)) {
-                return stock.getStock();
-            }
+    public boolean sendGift(String senderId, String receiverId, String productId) {
+        User sender = findUserById(senderId);
+        User receiver = findUserById(receiverId);
+        Product product = findProductById(productId);
+
+        if (sender != null && receiver != null && product != null && product.getStock() > 0) {
+            receiver.getGifts().add(productId);
+            product.setStock(product.getStock() - 1);
+            return true;
         }
-        return -1; // يعني أن المنتج غير متوفر
+        return false;
     }
 
+    public boolean returnProduct(String userId, String productId) {
+        User user = findUserById(userId);
+        Product product = findProductById(productId);
 
-    public Merchant findMerchantById(String merchantId){
-
-        for (Merchant merchant:merchants){
-            if (merchant.getId().equals(merchantId)){
-                return merchant;
-            }
+        if (user != null && product != null && user.getOrders().contains(productId)) {
+            user.getOrders().remove(productId);
+            product.setStock(product.getStock() + 1);
+            return true;
         }
-        return null;
+        return false;
     }
 
-    public ArrayList<Merchant> getMerchantsByProduct(String productId) {
-        ArrayList<Merchant> productMerchants = new ArrayList<>();
-        for (MerchantStock stock : array) {
-            if (stock.getProductId().equals(productId)) {
-                Merchant merchant = findMerchantById(stock.getMerchantId());
-                if (merchant != null) {
-                    productMerchants.add(merchant);
-                }
-            }
-        }
-        return productMerchants;
-    }
 
-    public ArrayList<User> getUsersByLowBalance(double balance) {
-        ArrayList<User> lowBalanceUsers = new ArrayList<>();
-        for (User user : users) {
-            if (user.getBalance() < balance) {
-                lowBalanceUsers.add(user);
-            }
-        }
-        return lowBalanceUsers;
-    }
+
+
+
+
 
 
 
